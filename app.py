@@ -193,7 +193,7 @@ def load_model():
         map_location=device
     )
 
-    model.load_state_dict(checkpoint)
+    model.load_state_dict(checkpoint, strict=False)
     model.to(device)
     model.eval()
 
