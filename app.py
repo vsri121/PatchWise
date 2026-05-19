@@ -180,15 +180,14 @@ device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 @st.cache_resource
 def load_model():
     model = AdaViTDynamic(
-        image_size=32,
-        patch_size=4,
-        num_classes=10,
-        dim=192,
-        depth=6,
-        heads=3,
-        mlp_dim=384
-    )
-
+    image_size=32,
+    patch_size=4,
+    num_classes=10,
+    dim=256,
+    depth=6,
+    heads=8,
+    mlp_dim=512
+)
     checkpoint = torch.load(
         "best_model.pth",
         map_location=device
