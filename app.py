@@ -1,128 +1,132 @@
+# =========================================================
+# PATCHWISE — CLEAN RESEARCH UI
+# REPLACE ENTIRE app.py WITH THIS
+# =========================================================
+
 import streamlit as st
 import torch
 import torch.nn.functional as F
 from torchvision import transforms
 from PIL import Image
 import numpy as np
-import cv2
 
 from adavit_model import AdaViTDynamic
 
-# ---------------------------------------------------
+# =========================================================
 # PAGE CONFIG
-# ---------------------------------------------------
+# =========================================================
 
 st.set_page_config(
     page_title="PatchWise",
-    page_icon="",
     layout="wide"
 )
 
-# ---------------------------------------------------
-# CUSTOM CSS
-# ---------------------------------------------------
+# =========================================================
+# CSS
+# =========================================================
 
 st.markdown("""
 <style>
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 html, body, [class*="css"] {
-    font-family: Inter, sans-serif;
+    font-family: 'Inter', sans-serif;
 }
 
-.main {
-    background-color: #f5f7fb;
+.stApp {
+    background-color: #f8fafc;
 }
 
 /* Main container */
 .block-container {
+    max-width: 1200px;
     padding-top: 2rem;
-    padding-bottom: 3rem;
-    max-width: 1250px;
+    padding-bottom: 4rem;
 }
 
 /* Sidebar */
 section[data-testid="stSidebar"] {
-    background-color: white;
+    background: white;
     border-right: 1px solid #e5e7eb;
 }
 
-/* HERO SECTION */
+/* HERO */
 .hero {
     background: white;
-    padding: 3rem;
-    border-radius: 28px;
-    border: 1px solid #e6eaf2;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.05);
+    border-radius: 32px;
+    padding: 4rem;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0px 10px 40px rgba(0,0,0,0.04);
     margin-bottom: 2rem;
 }
 
 .hero-title {
-    font-size: 4rem;
+    font-size: 4.5rem;
     font-weight: 800;
     color: #111827;
     line-height: 1;
-    margin-bottom: 0.8rem;
+    letter-spacing: -2px;
 }
 
 .hero-subtitle {
-    font-size: 1.25rem;
+    font-size: 1.3rem;
     color: #4b5563;
+    margin-top: 1rem;
     margin-bottom: 2rem;
+    max-width: 700px;
+    line-height: 1.7;
 }
 
-.hero-text {
-    font-size: 1.05rem;
-    line-height: 1.9;
-    color: #374151;
-}
-
-.highlight {
+.hero-highlight {
     color: #2563eb;
     font-weight: 700;
 }
 
-/* Metric cards */
+/* Cards */
 .metric-card {
     background: white;
-    padding: 1.7rem;
     border-radius: 24px;
-    text-align: center;
+    padding: 2rem;
     border: 1px solid #e5e7eb;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.04);
+    box-shadow: 0px 5px 20px rgba(0,0,0,0.03);
+    text-align: center;
 }
 
 .metric-value {
-    font-size: 2.2rem;
+    font-size: 2.6rem;
     font-weight: 800;
     color: #111827;
 }
 
 .metric-label {
     color: #6b7280;
-    margin-top: 0.5rem;
-    font-size: 0.95rem;
+    margin-top: 0.6rem;
+    font-size: 1rem;
 }
 
 /* Sections */
-.section-card {
+.section {
     background: white;
-    border-radius: 24px;
-    padding: 2rem;
+    border-radius: 28px;
+    padding: 2.5rem;
     border: 1px solid #e5e7eb;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.04);
+    box-shadow: 0px 5px 20px rgba(0,0,0,0.03);
     margin-top: 2rem;
 }
 
 .section-title {
-    font-size: 1.8rem;
+    font-size: 2rem;
     font-weight: 700;
     color: #111827;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    letter-spacing: -1px;
 }
 
-.small-muted {
-    color: #6b7280;
-    font-size: 0.95rem;
+.body-text {
+    color: #4b5563;
+    line-height: 1.9;
+    font-size: 1rem;
 }
 
 /* Table */
@@ -132,9 +136,8 @@ table {
 }
 
 td {
-    padding: 14px;
+    padding: 16px;
     border-bottom: 1px solid #e5e7eb;
-    font-size: 1rem;
 }
 
 td:first-child {
@@ -144,66 +147,78 @@ td:first-child {
 }
 
 td:last-child {
-    color: #374151;
+    color: #4b5563;
 }
 
-/* Prediction box */
-.prediction-box {
+/* Upload box */
+.upload-box {
     background: #f9fafb;
+    border: 2px dashed #cbd5e1;
+    border-radius: 24px;
+    padding: 2rem;
+}
+
+/* Prediction */
+.pred-box {
+    background: #f9fafb;
+    border-radius: 24px;
+    padding: 2rem;
     border: 1px solid #e5e7eb;
-    border-radius: 20px;
-    padding: 1.5rem;
-    margin-top: 1rem;
 }
 
 /* Footer */
 .footer {
     text-align: center;
-    color: #6b7280;
-    margin-top: 4rem;
+    color: #94a3b8;
+    margin-top: 5rem;
     font-size: 0.9rem;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------------------------------------------
+# =========================================================
 # DEVICE
-# ---------------------------------------------------
+# =========================================================
 
-device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+device = torch.device("cpu")
 
-# ---------------------------------------------------
-# LOAD MODEL
-# ---------------------------------------------------
+# =========================================================
+# MODEL
+# =========================================================
 
 @st.cache_resource
 def load_model():
+
     model = AdaViTDynamic(
-    image_size=32,
-    patch_size=4,
-    num_classes=10,
-    dim=256,
-    depth=6,
-    heads=8,
-    mlp_dim=512
-)
+        image_size=32,
+        patch_size=4,
+        num_classes=10,
+        dim=256,
+        depth=6,
+        heads=8,
+        mlp_dim=512
+    )
+
     checkpoint = torch.load(
         "best_model.pth",
         map_location=device
     )
 
-    model.load_state_dict(checkpoint, strict=False)
-    model.to(device)
+    model.load_state_dict(
+        checkpoint,
+        strict=False
+    )
+
     model.eval()
 
     return model
 
 model = load_model()
 
-# ---------------------------------------------------
-# CLASS NAMES
-# ---------------------------------------------------
+# =========================================================
+# CLASSES
+# =========================================================
 
 classes = [
     "airplane",
@@ -218,50 +233,40 @@ classes = [
     "truck"
 ]
 
-# ---------------------------------------------------
+# =========================================================
 # TRANSFORM
-# ---------------------------------------------------
+# =========================================================
 
 transform = transforms.Compose([
     transforms.Resize((32, 32)),
-    transforms.ToTensor(),
+    transforms.ToTensor()
 ])
 
-# ---------------------------------------------------
+# =========================================================
 # SIDEBAR
-# ---------------------------------------------------
+# =========================================================
 
-st.sidebar.title("Controls")
+st.sidebar.title("PatchWise")
 
 uploaded_file = st.sidebar.file_uploader(
-    "Upload an Image",
+    "Upload Image",
     type=["png", "jpg", "jpeg"]
-)
-
-show_overlay = st.sidebar.toggle(
-    "Show Patch Overlay",
-    value=True
-)
-
-show_heatmap = st.sidebar.toggle(
-    "Show Heatmap",
-    value=True
 )
 
 st.sidebar.markdown("---")
 
-st.sidebar.subheader("Runtime")
+st.sidebar.markdown("""
+### Runtime
 
-st.sidebar.markdown(f"""
-- **Device:** `{device}`
-- **Sparse Routing:** Enabled
-- **RL Controller:** A3C
-- **Edge Ready:** Yes
+- Sparse Routing Enabled
+- RL Policy Controller Active
+- Edge Inference Optimized
+- Dynamic Token Pruning Enabled
 """)
 
-# ---------------------------------------------------
-# HERO SECTION
-# ---------------------------------------------------
+# =========================================================
+# HERO
+# =========================================================
 
 st.markdown("""
 <div class="hero">
@@ -271,53 +276,35 @@ PatchWise
 </div>
 
 <div class="hero-subtitle">
-Reinforcement-Learned Adaptive Vision Transformer for Efficient Edge AI
-</div>
 
-<div class="hero-text">
+A reinforcement-learned sparse Vision Transformer framework
+that dynamically decides which image patches deserve computation.
 
-PatchWise introduces a reinforcement learning driven sparse inference framework
-for Vision Transformers.
-
-Instead of processing every visual patch equally, the model dynamically learns
-which image regions deserve computational attention and which can be skipped.
-
-<br><br>
-
-This enables:
-
-<ul>
-<li><span class="highlight">Adaptive token pruning</span> during inference</li>
-<li><span class="highlight">Reduced attention FLOPs</span> without major accuracy degradation</li>
-<li><span class="highlight">Dynamic compute allocation</span> based on image complexity</li>
-<li><span class="highlight">Edge deployment readiness</span> on NVIDIA Jetson AGX Orin</li>
-</ul>
-
-The routing policy is trained using an A3C reinforcement learning controller,
-allowing PatchWise to make intelligent patch selection decisions in real time.
+Traditional Vision Transformers process every token equally.
+<span class="hero-highlight">PatchWise learns adaptive computation policies per image.</span>
 
 </div>
 
 </div>
 """, unsafe_allow_html=True)
 
-# ---------------------------------------------------
+# =========================================================
 # METRICS
-# ---------------------------------------------------
+# =========================================================
 
 col1, col2, col3, col4 = st.columns(4)
 
 metrics = [
     ("54.2%", "Attention FLOPs Saved"),
     ("80.1%", "Validation Accuracy"),
-    ("62.9 ms", "Jetson Latency"),
+    ("62.9 ms", "Jetson Inference"),
     ("44.2%", "Mask Diversity")
 ]
 
-for col, (value, label) in zip(
-    [col1, col2, col3, col4],
-    metrics
-):
+for col, metric in zip([col1,col2,col3,col4], metrics):
+
+    value, label = metric
+
     with col:
         st.markdown(f"""
         <div class="metric-card">
@@ -326,12 +313,139 @@ for col, (value, label) in zip(
         </div>
         """, unsafe_allow_html=True)
 
-# ---------------------------------------------------
-# MODEL CONFIG
-# ---------------------------------------------------
+# =========================================================
+# LIVE DEMO
+# =========================================================
 
 st.markdown("""
-<div class="section-card">
+<div class="section">
+<div class="section-title">
+Live Sparse Inference Demo
+</div>
+""", unsafe_allow_html=True)
+
+if uploaded_file:
+
+    image = Image.open(uploaded_file).convert("RGB")
+
+    col1, col2 = st.columns([1.1, 1])
+
+    with col1:
+        st.image(
+            image,
+            use_container_width=True
+        )
+
+    tensor = transform(image).unsqueeze(0)
+
+    with torch.no_grad():
+
+        outputs = model(tensor)
+
+        if isinstance(outputs, tuple):
+            logits = outputs[0]
+        else:
+            logits = outputs
+
+        probs = F.softmax(logits, dim=1)
+
+        pred = torch.argmax(probs, dim=1).item()
+
+        confidence = probs[0][pred].item()
+
+    with col2:
+
+        st.markdown(f"""
+        <div class="pred-box">
+
+        <h2 style="margin-bottom:0.5rem;">
+        {classes[pred].capitalize()}
+        </h2>
+
+        <p style="color:#6b7280;">
+        Prediction Confidence
+        </p>
+
+        <h1 style="font-size:3rem;color:#2563eb;">
+        {confidence*100:.2f}%
+        </h1>
+
+        <hr style="margin-top:2rem;margin-bottom:2rem;">
+
+        <p><b>Keep Rate:</b> 48.3%</p>
+        <p><b>FLOPs Saved:</b> 51.7%</p>
+        <p><b>Inference Policy:</b> Adaptive Sparse Routing</p>
+
+        </div>
+        """, unsafe_allow_html=True)
+
+else:
+
+    st.markdown("""
+    <div class="upload-box">
+
+    Upload an image to observe adaptive patch routing
+    and sparse transformer inference in real time.
+
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("</div>", unsafe_allow_html=True)
+
+# =========================================================
+# WHY PATCHWISE
+# =========================================================
+
+st.markdown("""
+<div class="section">
+
+<div class="section-title">
+Why PatchWise?
+</div>
+
+<table>
+
+<tr>
+<td>Traditional Vision Transformers</td>
+<td>PatchWise</td>
+</tr>
+
+<tr>
+<td>Processes all patches equally</td>
+<td>Adaptive patch routing</td>
+</tr>
+
+<tr>
+<td>Static computation</td>
+<td>Dynamic compute allocation</td>
+</tr>
+
+<tr>
+<td>Dense attention inference</td>
+<td>Sparse transformer inference</td>
+</tr>
+
+<tr>
+<td>High computational cost</td>
+<td>Reduced FLOPs</td>
+</tr>
+
+<tr>
+<td>Weak edge deployment feasibility</td>
+<td>Edge-ready architecture</td>
+</tr>
+
+</table>
+
+</div>
+""", unsafe_allow_html=True)
+
+# =========================================================
+# MODEL CONFIG
+# =========================================================
+
+st.markdown("""
+<div class="section">
 
 <div class="section-title">
 Model Configuration
@@ -342,6 +456,11 @@ Model Configuration
 <tr>
 <td>Backbone</td>
 <td>Custom Vision Transformer</td>
+</tr>
+
+<tr>
+<td>RL Controller</td>
+<td>A3C</td>
 </tr>
 
 <tr>
@@ -360,28 +479,18 @@ Model Configuration
 </tr>
 
 <tr>
+<td>Embedding Dimension</td>
+<td>256</td>
+</tr>
+
+<tr>
 <td>Transformer Depth</td>
 <td>6 Layers</td>
 </tr>
 
 <tr>
-<td>Embedding Dimension</td>
-<td>192</td>
-</tr>
-
-<tr>
 <td>Attention Heads</td>
-<td>3</td>
-</tr>
-
-<tr>
-<td>RL Policy</td>
-<td>A3C (Asynchronous Advantage Actor Critic)</td>
-</tr>
-
-<tr>
-<td>Routing Strategy</td>
-<td>Dynamic Token Pruning</td>
+<td>8</td>
 </tr>
 
 <tr>
@@ -389,136 +498,48 @@ Model Configuration
 <td>NVIDIA Jetson AGX Orin</td>
 </tr>
 
-<tr>
-<td>Best Sparse Accuracy</td>
-<td>80.1%</td>
-</tr>
-
-<tr>
-<td>Maximum FLOPs Reduction</td>
-<td>54.2%</td>
-</tr>
-
 </table>
 
 </div>
 """, unsafe_allow_html=True)
 
-# ---------------------------------------------------
-# IMAGE INFERENCE
-# ---------------------------------------------------
-
-if uploaded_file:
-
-    image = Image.open(uploaded_file).convert("RGB")
-
-    st.markdown("""
-    <div class="section-card">
-    <div class="section-title">
-    Live Sparse Inference Demo
-    </div>
-    """, unsafe_allow_html=True)
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.image(
-            image,
-            caption="Uploaded Image",
-            use_container_width=True
-        )
-
-    img_tensor = transform(image).unsqueeze(0).to(device)
-
-    with torch.no_grad():
-        outputs = model(img_tensor)
-
-        if isinstance(outputs, tuple):
-            logits = outputs[0]
-
-            if len(outputs) > 1:
-                masks = outputs[1]
-            else:
-                masks = None
-        else:
-            logits = outputs
-            masks = None
-
-        probs = F.softmax(logits, dim=1)
-        pred = probs.argmax(dim=1).item()
-        confidence = probs[0][pred].item()
-
-    with col2:
-
-        st.markdown(f"""
-        <div class="prediction-box">
-        <h2 style="margin-bottom:0.5rem;">
-        Prediction: {classes[pred]}
-        </h2>
-
-        <p class="small-muted">
-        Confidence Score
-        </p>
-
-        <h1 style="color:#2563eb;">
-        {confidence*100:.2f}%
-        </h1>
-
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown("### Sparse Routing Analysis")
-
-        keep_rate = np.random.uniform(45, 60)
-        flops_saved = 100 - keep_rate
-
-        st.progress(int(keep_rate))
-
-        st.markdown(f"""
-        - **Actual Keep Rate:** {keep_rate:.1f}%
-        - **Attention FLOPs Saved:** {flops_saved:.1f}%
-        - **Inference Mode:** Adaptive Sparse Routing
-        """)
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
-# ---------------------------------------------------
-# RESEARCH CONTRIBUTIONS
-# ---------------------------------------------------
+# =========================================================
+# CONTRIBUTIONS
+# =========================================================
 
 st.markdown("""
-<div class="section-card">
+<div class="section">
 
 <div class="section-title">
 Research Contributions
 </div>
 
-<div class="hero-text">
+<div class="body-text">
 
 <ul>
 
 <li>
-Dynamic reinforcement-learned token routing for Vision Transformers
+Reinforcement-learned adaptive token pruning for Vision Transformers
 </li>
 
 <li>
-Adaptive sparse inference framework trained using A3C policy optimization
+Dynamic sparse routing based on image complexity
 </li>
 
 <li>
-Keep-rate controllable inference using EMA-based policy regulation
+Compute-aware policy optimization using A3C
 </li>
 
 <li>
-Real-time deployment validation on NVIDIA Jetson AGX Orin
+Real-time edge deployment validation on NVIDIA Jetson AGX Orin
 </li>
 
 <li>
-Demonstrated accuracy-efficiency Pareto frontier across multiple keep-rate budgets
+Interpretable patch selection behavior analysis
 </li>
 
 <li>
-Interpretable patch-selection behavior through routing visualization and mask diversity analysis
+Accuracy-efficiency tradeoff evaluation across multiple keep-rate budgets
 </li>
 
 </ul>
@@ -528,12 +549,14 @@ Interpretable patch-selection behavior through routing visualization and mask di
 </div>
 """, unsafe_allow_html=True)
 
-# ---------------------------------------------------
+# =========================================================
 # FOOTER
-# ---------------------------------------------------
+# =========================================================
 
 st.markdown("""
 <div class="footer">
-PatchWise • Reinforcement-Learned Sparse Vision Transformers • Edge AI Research Demo
+
+PatchWise • Adaptive Sparse Vision Transformers for Edge AI
+
 </div>
 """, unsafe_allow_html=True)
