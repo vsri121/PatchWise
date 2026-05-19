@@ -150,6 +150,25 @@ section[data-testid="stSidebar"] * {
     border-radius: 24px;
     padding: 2rem;
     border: 1px solid #e2e8f0;
+    color: #111827 !important;
+}
+
+.pred-box p {
+    color: #374151 !important;
+    font-size: 1rem;
+    line-height: 1.8;
+}
+
+.pred-box b {
+    color: #111827 !important;
+}
+
+.pred-box h1 {
+    color: #2563eb !important;
+}
+
+.pred-box h2 {
+    color: #111827 !important;
 }
 
 /* TABLES */
@@ -316,63 +335,6 @@ transform = transforms.Compose([
 ])
 
 # =========================================================
-# SIDEBAR
-# =========================================================
-
-st.sidebar.title("PatchWise")
-
-uploaded_file = st.sidebar.file_uploader(
-    "Upload Image",
-    type=["png", "jpg", "jpeg"]
-)
-
-st.sidebar.markdown("---")
-
-st.sidebar.markdown("""
-### Runtime
-
-- Sparse Routing Enabled
-- RL Policy Controller Active
-- Edge Inference Optimized
-- Dynamic Token Pruning Enabled
-""")
-
-# =========================================================
-# SAMPLE IMAGES
-# =========================================================
-
-st.markdown("""
-<div class="section">
-<div class="section-title">
-Quick Demo Samples
-</div>
-</div>
-""", unsafe_allow_html=True)
-
-sample_cols = st.columns(4)
-
-sample_paths = {
-    "Airplane": "samples/airplane.jpg",
-    "Dog": "samples/dog.jpg",
-    "Frog": "samples/frog.jpg",
-    "Ship": "samples/ship.jpg"
-}
-
-selected_sample = None
-
-for col, (label, path) in zip(sample_cols, sample_paths.items()):
-
-    with col:
-
-        if os.path.exists(path):
-
-            st.image(path, use_container_width=True)
-
-            if st.button(f"Use {label}"):
-
-                selected_sample = path
-
-# =========================================================
 # HERO
 # =========================================================
 
@@ -421,23 +383,111 @@ for col, metric in zip([col1,col2,col3,col4], metrics):
         </div>
         """, unsafe_allow_html=True)
 
+
 # =========================================================
-# LIVE DEMO
+# UPLOAD SECTION
 # =========================================================
 
 st.markdown("""
 <div class="section">
 <div class="section-title">
-Live Sparse Inference Demo
+Upload or Try Demo Images
+</div>
 </div>
 """, unsafe_allow_html=True)
 
-if uploaded_file or selected_sample:
+uploaded_file = st.file_uploader(
+    "Upload an image",
+    type=["png", "jpg", "jpeg"],
+    label_visibility="collapsed",
+    key="main_uploader"
+)
+
+
+
+# =========================================================
+# SAMPLE IMAGES
+# =========================================================
+
+st.markdown("""
+<div class="section">
+<div class="section-title">
+Quick Demo Samples
+</div>
+</div>
+""", unsafe_allow_html=True)
+
+sample_cols = st.columns(4)
+
+sample_paths = {
+    "Airplane": "samples/airplane.jpg",
+    "Dog": "samples/dog.jpg",
+    "Frog": "samples/frog.jpg",
+    "Ship": "samples/ship.jpg"
+}
+
+if "selected_sample" not in st.session_state:
+    st.session_state.selected_sample = None
+
+for idx, (col, (label, path)) in enumerate(
+    zip(sample_cols, sample_paths.items())
+):
+
+    with col:
+
+        if os.path.isfile(path):
+
+            st.image(path, use_container_width=True)
+
+            if st.button(
+                label,
+                key=f"sample_{idx}",
+                use_container_width=True
+            ):
+
+                st.session_state.selected_sample = path
+
+                st.markdown("""
+                <script>
+                const demoSection = window.parent.document.getElementById("live-demo");
+
+                if (demoSection) {
+                    demoSection.scrollIntoView({
+                        behavior: "smooth"
+                    });
+                }
+                </script>
+                """, unsafe_allow_html=True)
+
+
+# =========================================================
+# LIVE DEMO
+# =========================================================
+
+st.markdown("""
+    <div id="live-demo"></div>
+
+    <div class="section">
+    <div class="section-title">
+    Live Sparse Inference Demo
+    </div>
+    """, unsafe_allow_html=True)
+
+if uploaded_file or st.session_state.selected_sample:
+
+    st.markdown("""
+    <script>
+    const demoSection = window.parent.document.getElementById("live-demo");
+    if (demoSection) {
+        demoSection.scrollIntoView({ behavior: "smooth" });
+    }
+    </script>
+    """, unsafe_allow_html=True)
 
     if uploaded_file:
         image = Image.open(uploaded_file).convert("RGB")
     else:
-        image = Image.open(selected_sample).convert("RGB")
+        image = Image.open(st.session_state.selected_sample).convert("RGB")
 
     col1, col2 = st.columns([1.1, 1])
 
@@ -453,8 +503,13 @@ if uploaded_file or selected_sample:
 
         outputs = model(tensor)
 
+    # Handle tuple outputs
         if isinstance(outputs, tuple):
-            logits = outputs[0]
+            outputs = outputs[0]
+
+    # Extract logits tensor from dict
+        if isinstance(outputs, dict):
+            logits = outputs["logits"]
         else:
             logits = outputs
 
@@ -463,6 +518,10 @@ if uploaded_file or selected_sample:
         pred = torch.argmax(probs, dim=1).item()
 
         confidence = probs[0][pred].item()
+
+        mask = outputs["mask"][0].cpu().numpy()
+        keep_rate = mask.mean() * 100
+        flops_saved = 100 - keep_rate
 
     with col2:
 
@@ -483,12 +542,22 @@ if uploaded_file or selected_sample:
 
         <hr style="margin-top:2rem;margin-bottom:2rem;">
 
-        <p><b>Keep Rate:</b> 48.3%</p>
-        <p><b>FLOPs Saved:</b> 51.7%</p>
+        <p><b>Keep Rate:</b> {keep_rate:.1f}%</p>
+        <p><b>FLOPs Saved:</b> {flops_saved:.1f}%</p>
         <p><b>Inference Policy:</b> Adaptive Sparse Routing</p>
 
         </div>
         """, unsafe_allow_html=True)
+
+        st.markdown("### Active Patch Map")
+
+        patch_grid = mask.reshape(8, 8)
+
+        st.image(
+            patch_grid,
+            clamp=True,
+            use_container_width=True
+        )
 
 else:
 
