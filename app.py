@@ -231,6 +231,21 @@ div[data-testid="stVerticalBlock"] > div:empty {
 [data-testid="stFileUploader"] * {
     color: #111827 !important;
 }
+            
+/* Sample image cards */
+button[kind="secondary"] {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid #dbe4f0;
+    background: white;
+    color: #111827;
+    font-weight: 600;
+}
+
+button[kind="secondary"]:hover {
+    border-color: #2563eb;
+    color: #2563eb;
+}
 
 </style>
 """, unsafe_allow_html=True)
@@ -323,6 +338,41 @@ st.sidebar.markdown("""
 """)
 
 # =========================================================
+# SAMPLE IMAGES
+# =========================================================
+
+st.markdown("""
+<div class="section">
+<div class="section-title">
+Quick Demo Samples
+</div>
+</div>
+""", unsafe_allow_html=True)
+
+sample_cols = st.columns(4)
+
+sample_paths = {
+    "Airplane": "samples/airplane.jpg",
+    "Dog": "samples/dog.jpg",
+    "Frog": "samples/frog.jpg",
+    "Ship": "samples/ship.jpg"
+}
+
+selected_sample = None
+
+for col, (label, path) in zip(sample_cols, sample_paths.items()):
+
+    with col:
+
+        if os.path.exists(path):
+
+            st.image(path, use_container_width=True)
+
+            if st.button(f"Use {label}"):
+
+                selected_sample = path
+
+# =========================================================
 # HERO
 # =========================================================
 
@@ -382,9 +432,12 @@ Live Sparse Inference Demo
 </div>
 """, unsafe_allow_html=True)
 
-if uploaded_file:
+if uploaded_file or selected_sample:
 
-    image = Image.open(uploaded_file).convert("RGB")
+    if uploaded_file:
+        image = Image.open(uploaded_file).convert("RGB")
+    else:
+        image = Image.open(selected_sample).convert("RGB")
 
     col1, col2 = st.columns([1.1, 1])
 
