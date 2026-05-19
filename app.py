@@ -28,54 +28,59 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 html, body, [class*="css"] {
     font-family: 'Inter', sans-serif;
 }
 
+/* APP BACKGROUND */
 .stApp {
-    background-color: #f8fafc;
+    background-color: #f5f7fb;
 }
 
-/* Main container */
+/* MAIN WIDTH */
 .block-container {
-    max-width: 1200px;
+    max-width: 1180px;
     padding-top: 2rem;
     padding-bottom: 4rem;
 }
 
-/* Sidebar */
+/* SIDEBAR */
 section[data-testid="stSidebar"] {
-    background: white;
+    background: #ffffff !important;
     border-right: 1px solid #e5e7eb;
+    width: 320px !important;
+}
+
+section[data-testid="stSidebar"] * {
+    color: #111827 !important;
 }
 
 /* HERO */
 .hero {
     background: white;
-    border-radius: 32px;
+    border-radius: 30px;
     padding: 4rem;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0px 10px 40px rgba(0,0,0,0.04);
+    border: 1px solid #e7eaf0;
+    box-shadow: 0 10px 30px rgba(15,23,42,0.04);
     margin-bottom: 2rem;
 }
 
 .hero-title {
-    font-size: 4.5rem;
+    font-size: 5rem;
     font-weight: 800;
-    color: #111827;
+    color: #0f172a;
     line-height: 1;
-    letter-spacing: -2px;
+    letter-spacing: -3px;
 }
 
 .hero-subtitle {
-    font-size: 1.3rem;
-    color: #4b5563;
-    margin-top: 1rem;
-    margin-bottom: 2rem;
-    max-width: 700px;
-    line-height: 1.7;
+    font-size: 1.25rem;
+    color: #475569;
+    margin-top: 1.5rem;
+    line-height: 1.9;
+    max-width: 750px;
 }
 
 .hero-highlight {
@@ -83,35 +88,40 @@ section[data-testid="stSidebar"] {
     font-weight: 700;
 }
 
-/* Cards */
+/* METRIC CARDS */
 .metric-card {
     background: white;
     border-radius: 24px;
     padding: 2rem;
     border: 1px solid #e5e7eb;
-    box-shadow: 0px 5px 20px rgba(0,0,0,0.03);
+    box-shadow: 0 6px 18px rgba(15,23,42,0.03);
     text-align: center;
+    transition: 0.2s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-4px);
 }
 
 .metric-value {
-    font-size: 2.6rem;
+    font-size: 2.8rem;
     font-weight: 800;
     color: #111827;
 }
 
 .metric-label {
-    color: #6b7280;
-    margin-top: 0.6rem;
-    font-size: 1rem;
+    margin-top: 0.7rem;
+    color: #64748b;
+    font-size: 0.95rem;
 }
 
-/* Sections */
+/* SECTIONS */
 .section {
     background: white;
     border-radius: 28px;
     padding: 2.5rem;
     border: 1px solid #e5e7eb;
-    box-shadow: 0px 5px 20px rgba(0,0,0,0.03);
+    box-shadow: 0 6px 18px rgba(15,23,42,0.03);
     margin-top: 2rem;
 }
 
@@ -123,50 +133,70 @@ section[data-testid="stSidebar"] {
     letter-spacing: -1px;
 }
 
-.body-text {
-    color: #4b5563;
-    line-height: 1.9;
-    font-size: 1rem;
+/* UPLOAD */
+.upload-box {
+    background: #f8fafc;
+    border: 2px dashed #cbd5e1;
+    border-radius: 22px;
+    padding: 4rem;
+    text-align: center;
+    color: #64748b;
+    font-size: 1.1rem;
 }
 
-/* Table */
+/* PREDICTION BOX */
+.pred-box {
+    background: #f8fafc;
+    border-radius: 24px;
+    padding: 2rem;
+    border: 1px solid #e2e8f0;
+}
+
+/* TABLES */
 table {
     width: 100%;
     border-collapse: collapse;
 }
 
 td {
-    padding: 16px;
+    padding: 18px;
     border-bottom: 1px solid #e5e7eb;
 }
 
 td:first-child {
+    width: 38%;
     font-weight: 600;
     color: #111827;
-    width: 40%;
 }
 
 td:last-child {
-    color: #4b5563;
+    color: #475569;
 }
 
-/* Upload box */
-.upload-box {
-    background: #f9fafb;
-    border: 2px dashed #cbd5e1;
-    border-radius: 24px;
-    padding: 2rem;
+/* REMOVE STREAMLIT WEIRD GAPS */
+div[data-testid="stVerticalBlock"] > div:empty {
+    display: none;
 }
 
-/* Prediction */
-.pred-box {
-    background: #f9fafb;
-    border-radius: 24px;
-    padding: 2rem;
+/* FILE UPLOADER */
+[data-testid="stFileUploader"] {
+    background: #f8fafc;
+    border-radius: 18px;
+    padding: 1rem;
     border: 1px solid #e5e7eb;
 }
 
-/* Footer */
+/* BUTTONS */
+.stButton button {
+    border-radius: 12px;
+    border: none;
+    background: #2563eb;
+    color: white;
+    font-weight: 600;
+    padding: 0.6rem 1rem;
+}
+
+/* FOOTER */
 .footer {
     text-align: center;
     color: #94a3b8;
