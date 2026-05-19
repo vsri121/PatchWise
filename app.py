@@ -2,6 +2,7 @@
 # PATCHWISE — CLEAN RESEARCH UI
 # REPLACE ENTIRE app.py WITH THIS
 # =========================================================
+from io import BytesIO
 import os
 import streamlit as st
 import torch
@@ -9,6 +10,9 @@ import torch.nn.functional as F
 from torchvision import transforms
 from PIL import Image
 import numpy as np
+from io import BytesIO
+import requests
+
 
 from adavit_model import AdaViTDynamic
 
@@ -420,10 +424,10 @@ Quick Demo Samples
 sample_cols = st.columns(4)
 
 sample_paths = {
-    "Airplane": "samples/airplane.jpg",
-    "Dog": "samples/dog.jpg",
-    "Frog": "samples/frog.jpg",
-    "Ship": "samples/ship.jpg"
+    "Airplane": "https://images.unsplash.com/photo-1436491865332-7a61a109cc05",
+    "Dog": "https://images.unsplash.com/photo-1517849845537-4d257902454a",
+    "Frog": "https://images.unsplash.com/photo-1552728089-57bdde30beb3",
+    "Ship": "https://images.unsplash.com/photo-1500375592092-40eb2168fd21"
 }
 
 if "selected_sample" not in st.session_state:
@@ -485,19 +489,19 @@ if uploaded_file or st.session_state.selected_sample:
     """, unsafe_allow_html=True)
 
     if uploaded_file:
+
         image = Image.open(uploaded_file).convert("RGB")
+
     else:
-        image = Image.open(st.session_state.selected_sample).convert("RGB")
 
-    col1, col2 = st.columns([1.1, 1])
-
-    with col1:
-        st.image(
-            image,
-            use_container_width=True
+        response = requests.get(
+            st.session_state.selected_sample
         )
 
-    tensor = transform(image).unsqueeze(0)
+        image = Image.open(
+            BytesIO(response.content)
+            ).convert("RGB")
+        tensor = transform(image).unsqueeze(0)
 
     with torch.no_grad():
 
