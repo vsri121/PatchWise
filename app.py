@@ -424,10 +424,13 @@ Quick Demo Samples
 sample_cols = st.columns(4)
 
 sample_paths = {
-    "Airplane": "https://images.unsplash.com/photo-1436491865332-7a61a109cc05",
-    "Dog": "https://images.unsplash.com/photo-1517849845537-4d257902454a",
-    "Frog": "https://images.unsplash.com/photo-1552728089-57bdde30beb3",
-    "Ship": "https://images.unsplash.com/photo-1500375592092-40eb2168fd21"
+    "Airplane": "https://upload.wikimedia.org/wikipedia/commons/5/5b/Boeing_747-8_first_flight_Everett%2C_WA.jpg",
+
+    "Dog": "https://upload.wikimedia.org/wikipedia/commons/6/6e/Golde33443.jpg",
+
+    "Frog": "https://upload.wikimedia.org/wikipedia/commons/3/3d/Red_eyed_tree_frog_edit2.jpg",
+
+    "Ship": "https://upload.wikimedia.org/wikipedia/commons/2/26/Queen_Mary_2_in_Long_Beach.jpg"
 }
 
 if "selected_sample" not in st.session_state:
