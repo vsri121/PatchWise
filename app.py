@@ -68,7 +68,7 @@ section[data-testid="stSidebar"] * {
 }
 
 .hero-title {
-    font-size: 5rem;
+    font-size: 4rem;
     font-weight: 800;
     color: #0f172a;
     line-height: 1;
@@ -180,10 +180,14 @@ div[data-testid="stVerticalBlock"] > div:empty {
 
 /* FILE UPLOADER */
 [data-testid="stFileUploader"] {
-    background: #f8fafc;
+    background: white;
     border-radius: 18px;
     padding: 1rem;
     border: 1px solid #e5e7eb;
+}
+
+[data-testid="stFileUploader"] * {
+    color: #111827 !important;
 }
 
 /* BUTTONS */
@@ -202,6 +206,30 @@ div[data-testid="stVerticalBlock"] > div:empty {
     color: #94a3b8;
     margin-top: 5rem;
     font-size: 0.9rem;
+}
+            
+/* Research contribution text fix */
+.body-text {
+    color: #1e293b !important;
+    line-height: 1.9;
+    font-size: 1.05rem;
+}
+
+.body-text li {
+    color: #1e293b !important;
+    margin-bottom: 0.9rem;
+}
+            
+/* File uploader text visibility */
+[data-testid="stFileUploader"] {
+    background: white;
+    border-radius: 18px;
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+}
+
+[data-testid="stFileUploader"] * {
+    color: #111827 !important;
 }
 
 </style>
