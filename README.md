@@ -48,15 +48,10 @@ Users can:
 
 ### Home Page
 
-![Home Page](screenshots/home.png)
+![Home Page](screenshots/landing-page.png)
 
 ---
 
-### Upload Interface
-
-![Upload Interface](screenshots/upload.png)
-
----
 
 ### Prediction Results
 
